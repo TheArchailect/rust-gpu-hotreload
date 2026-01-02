@@ -12,7 +12,7 @@ categories = ["graphics", "rendering"]
 [dependencies]
 notify = "6.1"
 vulkano = "0.35"
-spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu.git", branch = "main", default-features = false }
+spirv-builder = {version = "0.9", git = "https://github.com/Rust-GPU/rust-gpu.git", branch = "main", default-features = false }
 parking_lot = "0.12"
 
 [dependencies.bevy]
