@@ -1,0 +1,26 @@
+[package]
+name = "rust-gpu-hotreload"
+authors = ["archailect"]
+version = "0.1.0"
+edition = "2024"
+description = "Hot-reloading for rust-gpu SPIR-V shaders in Vulkan applications"
+license = "MIT"
+repository = "https://github.com/TheArchailect/rust-gpu-hotreload"
+keywords = ["gpu", "vulkan", "shader", "hot-reload", "spirv"]
+categories = ["graphics", "rendering"]
+
+[dependencies]
+notify = "6.1"
+vulkano = "0.35"
+spirv-builder = { git = "https://github.com/Rust-GPU/rust-gpu.git", branch = "main", default-features = false }
+parking_lot = "0.12"
+
+[dependencies.bevy]
+default-features = false
+features = ["multi_threaded"]
+version = "0.17.0"
+
+[features]
+default = ["use-installed-tools"]
+use-installed-tools = ["spirv-builder/use-installed-tools"]
+use-compiled-tools = ["spirv-builder/use-compiled-tools"]
