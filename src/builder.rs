@@ -51,6 +51,7 @@ impl ShaderHotReloaderBuilder {
             extensions: Vec::new(),
             multimodule: false,
             debounce_ms: DEFAULT_DEBOUNCE_MS,
+            strip_capabilities: Vec::new(),
         }
     }
 
@@ -61,6 +62,12 @@ impl ShaderHotReloaderBuilder {
     /// * `target` - Target string (e.g., "spirv-unknown-vulkan1.3")
     pub fn target(mut self, target: impl Into<String>) -> Self {
         self.target = target.into();
+        self
+    }
+
+    /// Specifies SPIR-V capabilities to remove after compilation
+    pub fn strip_capability(mut self, capability: Capability) -> Self {
+        self.strip_capabilities.push(capability);
         self
     }
 
