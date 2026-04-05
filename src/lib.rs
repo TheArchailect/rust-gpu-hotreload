@@ -66,5 +66,5 @@ pub use compile::ShaderOutputDir;
 pub use vulkano_task::{HotReloadable, HotReloadableTask};
 pub use watcher::ShaderHotReloader;
 
-const DEFAULT_TARGET: &str = "spirv-unknown-vulkan1.3";
+const DEFAULT_TARGET: &str = "spirv-unknown-vulkan1.2";
 const DEFAULT_DEBOUNCE_MS: u64 = 500;
