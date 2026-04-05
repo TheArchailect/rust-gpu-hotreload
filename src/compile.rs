@@ -2,7 +2,7 @@ use crate::DEFAULT_TARGET;
 use bevy::prelude::Resource;
 use spirv_builder::Capability;
 use spirv_builder::SpirvBuilder;
-use spirv_builder::{MetadataPrintout, SpirvMetadata};
+use spirv_builder::{SpirvMetadata};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use vulkano::device::Device;
