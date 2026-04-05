@@ -121,6 +121,7 @@ impl ShaderHotReloaderBuilder {
             self.extensions,
             self.multimodule,
             self.debounce_ms,
+            self.strip_capabilities, 
         )
     }
 }
