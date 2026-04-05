@@ -31,6 +31,7 @@ impl ShaderHotReloader {
         extensions: Vec<String>,
         multimodule: bool,
         debounce_ms: u64,
+        strip_capabilities: Vec<Capability>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let (reload_tx, reload_rx): (Sender<()>, Receiver<()>) = channel();
         let reload_tx = Arc::new(Mutex::new(reload_tx));
@@ -46,6 +47,7 @@ impl ShaderHotReloader {
             &capabilities,
             &extensions,
             multimodule,
+            &strip_capabilities,
         )?;
         println!("Initial shader compilation complete");
 
@@ -84,6 +86,7 @@ impl ShaderHotReloader {
                                 &capabilities_owned,
                                 &extensions_owned,
                                 multimodule,
+                                &strip_capabilities,
                             ) {
                                 eprintln!("Shader compilation failed: {}", e);
                             } else {

@@ -174,24 +174,71 @@ pub(crate) fn compile_shaders(
     capabilities: &[Capability],
     extensions: &[String],
     multimodule: bool,
+    strip_capabilities: &[Capability],
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut builder = SpirvBuilder::new(shader_crate_path, target);
+    use std::process::Command;
+    use std::fs;
 
+    // Compile with spirv-builder
+    let mut builder = SpirvBuilder::new(shader_crate_path, target);
     for capability in capabilities {
         builder = builder.capability(*capability);
     }
-
     for extension in extensions {
         builder = builder.extension(extension.as_str());
     }
-
     if multimodule {
         builder = builder.multimodule(true);
     }
+    builder.spirv_metadata(SpirvMetadata::NameVariables).build()?;
 
-    builder
-        .spirv_metadata(SpirvMetadata::NameVariables)
-        .build()?;
+    // Locate output directory
+    let shader_out_dir = calculate_shader_output_dir(
+        shader_crate_path
+            .file_name()
+            .and_then(|s| s.to_str())
+            .expect("Invalid shader crate path"),
+        target,
+        "release",
+    );
+
+    // Strip unwanted capabilities
+    if shader_out_dir.exists() && !strip_capabilities.is_empty() {
+        for entry in fs::read_dir(&shader_out_dir)? {
+            let entry = entry?;
+            if entry.path().extension().and_then(|s| s.to_str()) == Some("spv") {
+                let spv_path = entry.path();
+                let asm_path = spv_path.with_extension("spvasm");
+
+                // Disassemble SPIR-V
+                Command::new("spirv-dis")
+                    .arg(&spv_path)
+                    .arg("-o")
+                    .arg(&asm_path)
+                    .status()?;
+
+                // Read and filter lines
+                let lines: Vec<String> = fs::read_to_string(&asm_path)?
+                    .lines()
+                    .map(|l| l.to_string())
+                    .filter(|l| {
+                        !strip_capabilities.iter().any(|cap| {
+                            l.contains(&format!("OpCapability {:?}", cap))
+                        })
+                    })
+                    .collect();
+
+                fs::write(&asm_path, lines.join("\n"))?;
+
+                // Reassemble
+                Command::new("spirv-as")
+                    .arg(&asm_path)
+                    .arg("-o")
+                    .arg(&spv_path)
+                    .status()?;
+            }
+        }
+    }
 
     Ok(())
 }
