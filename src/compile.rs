@@ -191,7 +191,6 @@ pub(crate) fn compile_shaders(
 
     builder
         .spirv_metadata(SpirvMetadata::NameVariables)
-        .spirv_metadata(MetadataPrintout::DependencyOnly)
         .build()?;
 
     Ok(())
