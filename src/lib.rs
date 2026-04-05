@@ -58,13 +58,15 @@
 
 pub mod builder;
 pub mod compile;
+pub mod spirv_patch;
 pub mod vulkano_task;
 pub mod watcher;
 
 pub use builder::ShaderHotReloaderBuilder;
 pub use compile::ShaderOutputDir;
+pub use spirv_patch::SpirvPatcher;
 pub use vulkano_task::{HotReloadable, HotReloadableTask};
 pub use watcher::ShaderHotReloader;
 
-const DEFAULT_TARGET: &str = "spirv-unknown-vulkan1.2";
-const DEFAULT_DEBOUNCE_MS: u64 = 500;
+pub(crate) const DEFAULT_TARGET: &str = "spirv-unknown-vulkan1.2";
+pub(crate) const DEFAULT_DEBOUNCE_MS: u64 = 500;

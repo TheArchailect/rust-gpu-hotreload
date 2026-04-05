@@ -1,5 +1,6 @@
 use crate::ShaderHotReloaderBuilder;
 use crate::compile::compile_shaders;
+use crate::spirv_patch::SpirvPatcher;
 use bevy::prelude::Resource;
 use notify::{Config, Event, RecommendedWatcher, RecursiveMode, Watcher};
 use spirv_builder::Capability;
@@ -8,10 +9,6 @@ use std::sync::mpsc::{Receiver, Sender, channel};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-/// Resource for managing shader hot reloading.
-///
-/// Watches the shader crate directory for changes and automatically recompiles
-/// SPIR-V shaders when source files are modified.
 #[derive(Resource)]
 pub struct ShaderHotReloader {
     _watcher: RecommendedWatcher,
@@ -19,7 +16,6 @@ pub struct ShaderHotReloader {
 }
 
 impl ShaderHotReloader {
-    /// Creates a builder for customizing shader hot reloader configuration.
     pub fn builder(shader_crate_path: impl AsRef<Path>) -> ShaderHotReloaderBuilder {
         ShaderHotReloaderBuilder::new(shader_crate_path)
     }
@@ -31,6 +27,7 @@ impl ShaderHotReloader {
         extensions: Vec<String>,
         multimodule: bool,
         debounce_ms: u64,
+        spirv_patch: Option<SpirvPatcher>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         let (reload_tx, reload_rx): (Sender<()>, Receiver<()>) = channel();
         let reload_tx = Arc::new(Mutex::new(reload_tx));
@@ -46,6 +43,7 @@ impl ShaderHotReloader {
             &capabilities,
             &extensions,
             multimodule,
+            spirv_patch.as_ref(),
         )?;
         println!("Initial shader compilation complete");
 
@@ -53,6 +51,7 @@ impl ShaderHotReloader {
         let target_owned = target.to_string();
         let capabilities_owned = capabilities.clone();
         let extensions_owned = extensions.clone();
+        let spirv_patch_owned = spirv_patch;
 
         let mut watcher = RecommendedWatcher::new(
             move |res: Result<Event, notify::Error>| {
@@ -84,6 +83,7 @@ impl ShaderHotReloader {
                                 &capabilities_owned,
                                 &extensions_owned,
                                 multimodule,
+                                spirv_patch_owned.as_ref(),
                             ) {
                                 eprintln!("Shader compilation failed: {}", e);
                             } else {
@@ -109,14 +109,9 @@ impl ShaderHotReloader {
         })
     }
 
-    /// Checks if shaders have been recompiled since the last check.
-    ///
-    /// Returns true if a reload is available, false otherwise.
-    /// This method is non-blocking and can be called frequently.
     #[inline]
     pub fn check_for_reload(&self) -> bool {
         if let Ok(receiver) = self.reload_receiver.lock() {
-            // Drain all pending reload signals and return true if any were present
             let mut has_reload = false;
             while receiver.try_recv().is_ok() {
                 has_reload = true;
