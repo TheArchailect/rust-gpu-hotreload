@@ -34,6 +34,7 @@ pub struct ShaderHotReloaderBuilder {
     extensions: Vec<String>,
     multimodule: bool,
     debounce_ms: u64,
+    strip_capabilities: Vec<Capability>,
 }
 
 impl ShaderHotReloaderBuilder {
